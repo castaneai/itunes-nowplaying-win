@@ -1,2 +1,2 @@
-var itunes = require('./build/Release/local-itunes-windows');
-console.log(itunes.getCurrentTrack());
+var itunes = require('bindings')('itunes-win');
+console.dir(itunes.getCurrentTrack());
