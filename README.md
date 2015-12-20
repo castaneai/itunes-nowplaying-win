@@ -1,4 +1,4 @@
-local-itunes-windows
+itunes-win
 =======================
 Work in progress.
 
@@ -15,3 +15,8 @@ iTunes app control for Windows.
 ```
 $ node-gyp configure
 ```
+
+## API
+
+### `getCurrentTrack()`
+Get current playing track info.
