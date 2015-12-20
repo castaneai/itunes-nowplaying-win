@@ -23,13 +23,13 @@ namespace itunes_win
 
     const std::string get_current_track_name()
     {
-        com_ptr<IiTunes> itunes;
+        com_unique_ptr<IiTunes> itunes;
         if (CoCreateInstance(CLSID_iTunesApp, nullptr, CLSCTX_LOCAL_SERVER, IID_IiTunes, reinterpret_cast<void**>(&itunes)) != S_OK) {
             throw std::exception("CoCreateInstance failed.");
         }
-
-        com_ptr<IITTrack> track;
-        if (itunes->get_CurrentTrack(&track) != S_OK) {
+        
+        com_unique_ptr<IITTrack> track;
+        if (itunes->get_CurrentTrack(reinterpret_cast<IITTrack**>(&track)) != S_OK) {
             throw std::exception("get_CurrentTrack failed.");
         }
 

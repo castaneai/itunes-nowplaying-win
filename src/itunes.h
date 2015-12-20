@@ -1,14 +1,20 @@
 #pragma once
-#include <comip.h>
 #include <comdef.h>
+#include <string>
+#include <memory>
 
-template <typename T>
-struct com_ptr_t {
-    using type = _com_ptr_t<_com_IIID<T, &__uuidof(T)>>;
+struct com_deleter
+{
+    void operator()(IUnknown* i)
+    {
+        if (i != nullptr) {
+            i->Release();
+        }
+    }
 };
 
 template <typename T>
-using com_ptr = typename com_ptr_t<T>::type;
+using com_unique_ptr = std::unique_ptr<T, com_deleter>;
 
 namespace itunes_win
 {
