@@ -4,6 +4,9 @@
 void get_current_track(const Nan::FunctionCallbackInfo<v8::Value>& info)
 {
     try {
+        if (!itunes_win::itunes_process_exists()) {
+            throw std::exception("iTunes process not found.");
+        }
         auto obj = Nan::New<v8::Object>();
         obj->Set(Nan::New("name").ToLocalChecked(), Nan::New(itunes_win::get_current_track_name()).ToLocalChecked());
         info.GetReturnValue().Set(obj);

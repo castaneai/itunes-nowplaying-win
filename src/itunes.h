@@ -24,5 +24,6 @@ namespace itunes_win
 
     // export functions
     // TODO:
+    bool itunes_process_exists();
     const std::string get_current_track_name();
 }
