@@ -1,8 +1,8 @@
 itunes-win
 =======================
-Work in progress.
+[![npm version](https://badge.fury.io/js/itunes-win.svg)](https://badge.fury.io/js/itunes-win)
 
-iTunes app control for Windows.
+Control iTunes app for Windows.
 
 ## Requirement
 
