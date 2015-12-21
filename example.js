@@ -1,2 +1,2 @@
-var itunes = require('bindings')('itunes_win');
+var itunes = require('./itunes-win');
 console.dir(itunes.getCurrentTrack());

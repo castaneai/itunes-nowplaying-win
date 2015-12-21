@@ -1,1 +1,1 @@
-module.exports = require('bindings')('itunes-win');
+module.exports = require('bindings')('itunes_win');
