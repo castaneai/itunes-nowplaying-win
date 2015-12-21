@@ -16,22 +16,21 @@ namespace itunes_win
         CoUninitialize();
     }
 
-    static std::string wstring_to_utf8_string(const std::wstring& wstr)
+    std::string wstring_to_utf8_string(const std::wstring& wstr)
     {
         std::wstring_convert<std::codecvt_utf8<wchar_t>> cvt;
         return cvt.to_bytes(wstr);
     }
 
-    static com_unique_ptr<IITTrack> get_current_track()
+    com_unique_ptr<IITTrack> get_current_track()
     {
         com_unique_ptr<IiTunes> itunes;
-        if (CoCreateInstance(CLSID_iTunesApp, nullptr, CLSCTX_LOCAL_SERVER, IID_IiTunes, reinterpret_cast<void**>(&itunes)) != S_OK || !itunes) {
+        if (CoCreateInstance(CLSID_iTunesApp, nullptr, CLSCTX_LOCAL_SERVER, IID_IiTunes, reinterpret_cast<void**>(&itunes)) != S_OK) {
             throw std::exception("CoCreateInstance failed.");
         }
         
         com_unique_ptr<IITTrack> track;
-        if (itunes->get_CurrentTrack(reinterpret_cast<IITTrack**>(&track)) != S_OK || !track) {
-            itunes->Release(); // why?
+        if (itunes->get_CurrentTrack(reinterpret_cast<IITTrack**>(&track)) != S_OK) {
             throw std::exception("get_CurrentTrack failed.");
         }
         return std::move(track);
@@ -39,7 +38,7 @@ namespace itunes_win
 
     bool itunes_process_exists()
     {
-        return FindWindow(_T("iTunes"), _T("iTunes"));
+        return FindWindow(_T("iTunes"), _T("iTunes")) != 0;
     }
 
     const std::string get_current_track_name()

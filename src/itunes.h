@@ -7,9 +7,7 @@ struct com_deleter
 {
     void operator()(IUnknown* i)
     {
-        if (i != nullptr) {
-            i->Release();
-        }
+        i->Release();
     }
 };
 
@@ -18,12 +16,10 @@ using com_unique_ptr = std::unique_ptr<T, com_deleter>;
 
 namespace itunes_win
 {
-    // lifecycle
     void setup();
     void tear_down();
 
     // export functions
-    // TODO:
     bool itunes_process_exists();
     const std::string get_current_track_name();
 }
