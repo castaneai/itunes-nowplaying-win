@@ -42,6 +42,23 @@ namespace itunes_win
             }
         }
 
+        std::string artworkFormatToString(const ArtworkFormat& fmt)
+        {
+            switch (fmt) {
+            case ArtworkFormat::JPEG:
+                return "JPEG";
+
+            case ArtworkFormat::PNG:
+                return "PNG";
+
+            case ArtworkFormat::BMP:
+                return "BMP";
+
+            default:
+                return "UNKNOWN";
+            }
+        }
+
         std::string readAllContentsFromFile(const std::string& filePath)
         {
             std::ifstream file(filePath, std::ios::in | std::ios::binary);
@@ -89,10 +106,15 @@ namespace itunes_win
             if (artworkCount > 0) {
                 com_unique_ptr<IITArtwork> pArtwork;
                 if (pArtworks->get_Item(1, reinterpret_cast<IITArtwork**>(&pArtwork)) != S_OK) throw std::exception("IITArtworkCollection get_Item failed.");
+
+                auto artworkFormat = util::getArtworkFormat(pArtwork.get());
+                result.artworkFormat = util::artworkFormatToString(artworkFormat);
+
                 std::string tempFilePath  = std::tmpnam(nullptr);
                 _bstr_t bstrPath = tempFilePath.c_str();
                 if (pArtwork->SaveArtworkToFile(bstrPath) != S_OK) std::exception("IITArtwork SaveArtworkToFile failed.");
                 result.artworkDataBytes = util::readAllContentsFromFile(tempFilePath);
+                std::remove(tempFilePath.c_str());
             }
             CoUninitialize();
             return result;

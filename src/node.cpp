@@ -39,11 +39,17 @@ public:
                 Nan::New(currentTrack.name).ToLocalChecked());
             obj->Set(Nan::New("artist").ToLocalChecked(),
                 Nan::New(currentTrack.artist).ToLocalChecked());
-            obj->Set(Nan::New("artwork").ToLocalChecked(),
+
+            auto artworkObj = Nan::New<v8::Object>();
+            artworkObj->Set(Nan::New("format").ToLocalChecked(),
+                Nan::New(currentTrack.artworkFormat).ToLocalChecked());
+            artworkObj->Set(Nan::New("data").ToLocalChecked(),
                 Nan::NewBuffer(
                     const_cast<char*>(currentTrack.artworkDataBytes.data()),
                     currentTrack.artworkDataBytes.size()
                     ).ToLocalChecked());
+
+            obj->Set(Nan::New("artwork").ToLocalChecked(), artworkObj);
             callbackArgs[1] = obj;
         }
         callback->Call(2, callbackArgs);

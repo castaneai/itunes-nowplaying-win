@@ -25,7 +25,9 @@ Get current playing track info.
 
 ```
 err: null
-track: { name: '不安定な神様',
-  artist: 'Suara',
-  artwork: <Buffer 89 50 4e 47 ...> }
+track: { name: 'Dimension tripper!!!!',
+  artist: 'nao',
+  artwork:
+   { format: 'JPEG',
+     data: <Buffer ff d8 ff ... > } }
 ```
