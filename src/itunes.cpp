@@ -22,26 +22,6 @@ namespace itunes_win
             return wstringToUTF8String(std::wstring(bstr, bstr.length()));
         }
 
-        ArtworkFormat getArtworkFormat(IITArtwork* const artwork)
-        {
-            ITArtworkFormat format;
-            if (artwork->get_Format(&format) != S_OK) throw std::exception("IITArtwork get_Format failed.");
-            switch (format)
-            {
-            case ITArtworkFormatJPEG:
-                return ArtworkFormat::JPEG;
-
-            case ITArtworkFormatPNG:
-                return ArtworkFormat::PNG;
-
-            case ITArtworkFormatBMP:
-                return ArtworkFormat::BMP;
-
-            default:
-                return ArtworkFormat::UNKNOWN;
-            }
-        }
-
         std::string artworkFormatToString(const ITArtworkFormat& fmt)
         {
             switch (fmt) {

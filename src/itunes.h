@@ -25,14 +25,6 @@ namespace itunes_win
         std::string artworkDataBytes;
     };
 
-    enum class ArtworkFormat
-    {
-        UNKNOWN,
-        JPEG,
-        PNG,
-        BMP,
-    };
-
     // export functions
     const bool iTunesProcessExists();
     const Track getCurrentTrack();

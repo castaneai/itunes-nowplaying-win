@@ -46,7 +46,7 @@ public:
             artworkObj->Set(Nan::New("data").ToLocalChecked(),
                 Nan::NewBuffer(
                     const_cast<char*>(currentTrack.artworkDataBytes.data()),
-                    currentTrack.artworkDataBytes.size()
+                    static_cast<uint32_t>(currentTrack.artworkDataBytes.size())
                     ).ToLocalChecked());
 
             obj->Set(Nan::New("artwork").ToLocalChecked(), artworkObj);
