@@ -1,2 +1,5 @@
 var itunes = require('./itunes-win');
-console.dir(itunes.getCurrentTrack());
+itunes.getCurrentTrack(function(err, track) {
+    console.log("err:", err);
+    console.log("track:", track);
+});

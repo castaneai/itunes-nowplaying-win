@@ -18,5 +18,14 @@ $ node-gyp configure
 
 ## API
 
-### `getCurrentTrack()`
+### `getCurrentTrack(callback)`
 Get current playing track info.
+
+#### `callback`: `function(err, track)`
+
+```
+err: null
+track: { name: '不安定な神様',
+  artist: 'Suara',
+  artwork: <Buffer 89 50 4e 47 ...> }
+```

@@ -1,28 +1,73 @@
 #include <nan.h>
 #include "itunes.h"
 
-void get_current_track(const Nan::FunctionCallbackInfo<v8::Value>& info)
+class ITunesAsyncWorker : public Nan::AsyncWorker
+{
+public:
+    ITunesAsyncWorker(Nan::Callback* callback)
+        : Nan::AsyncWorker(callback)
+    {}
+
+    void Execute()
+    {
+        try {
+            if (!itunes_win::iTunesProcessExists()) {
+                throw std::exception("iTunes process not found.");
+            }
+            currentTrack = itunes_win::getCurrentTrack();
+        }
+        catch (const std::exception& ex) {
+            error_message = ex.what();
+        }
+    }
+
+    void HandleOKCallback()
+    {
+        bool hasError = !error_message.empty();
+        v8::Local<v8::Value> callbackArgs[] = {
+            Nan::Null(),
+            Nan::Null(),
+        };
+
+        if (hasError) {
+            auto err = Nan::New(error_message).ToLocalChecked();
+            callbackArgs[0] = err;
+        }
+        else {
+            auto obj = Nan::New<v8::Object>();
+            obj->Set(Nan::New("name").ToLocalChecked(),
+                Nan::New(currentTrack.name).ToLocalChecked());
+            obj->Set(Nan::New("artist").ToLocalChecked(),
+                Nan::New(currentTrack.artist).ToLocalChecked());
+            obj->Set(Nan::New("artwork").ToLocalChecked(),
+                Nan::NewBuffer(
+                    const_cast<char*>(currentTrack.artworkDataBytes.data()),
+                    currentTrack.artworkDataBytes.size()
+                    ).ToLocalChecked());
+            callbackArgs[1] = obj;
+        }
+        callback->Call(2, callbackArgs);
+    }
+private:
+    itunes_win::Track currentTrack;
+    std::string error_message;
+};
+
+NAN_METHOD(GetCurrentTrack)
 {
     try {
-        if (!itunes_win::itunes_process_exists()) {
-            throw std::exception("iTunes process not found.");
-        }
-        auto obj = Nan::New<v8::Object>();
-        obj->Set(Nan::New("name").ToLocalChecked(), Nan::New(itunes_win::get_current_track_name()).ToLocalChecked());
-        info.GetReturnValue().Set(obj);
+        auto callback = new Nan::Callback(info[0].As<v8::Function>());
+        Nan::AsyncQueueWorker(new ITunesAsyncWorker(callback));
     }
     catch (const std::exception& ex) {
         Nan::ThrowError(ex.what());
     }
 }
 
-void init(v8::Handle<v8::Object> exports)
+NAN_MODULE_INIT(init)
 {
-    itunes_win::setup();
-    node::AtExit([](void*) { itunes_win::tear_down(); });
-
-    exports->Set(Nan::New("getCurrentTrack").ToLocalChecked(),
-        Nan::New<v8::FunctionTemplate>(get_current_track)->GetFunction());
+    Nan::Set(target, Nan::New("getCurrentTrack").ToLocalChecked(),
+        Nan::GetFunction(Nan::New<v8::FunctionTemplate>(GetCurrentTrack)).ToLocalChecked());
 }
 
 NODE_MODULE(itunes_win, init)
