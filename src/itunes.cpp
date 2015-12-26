@@ -42,16 +42,16 @@ namespace itunes_win
             }
         }
 
-        std::string artworkFormatToString(const ArtworkFormat& fmt)
+        std::string artworkFormatToString(const ITArtworkFormat& fmt)
         {
             switch (fmt) {
-            case ArtworkFormat::JPEG:
+            case ITArtworkFormatJPEG:
                 return "JPEG";
 
-            case ArtworkFormat::PNG:
+            case ITArtworkFormatPNG:
                 return "PNG";
 
-            case ArtworkFormat::BMP:
+            case ITArtworkFormatBMP:
                 return "BMP";
 
             default:
@@ -107,8 +107,9 @@ namespace itunes_win
                 com_unique_ptr<IITArtwork> pArtwork;
                 if (pArtworks->get_Item(1, reinterpret_cast<IITArtwork**>(&pArtwork)) != S_OK) throw std::exception("IITArtworkCollection get_Item failed.");
 
-                auto artworkFormat = util::getArtworkFormat(pArtwork.get());
-                result.artworkFormat = util::artworkFormatToString(artworkFormat);
+                ITArtworkFormat format;
+                if (pArtwork->get_Format(&format) != S_OK) throw std::exception("IITArtwork get_Format failed.");
+                result.artworkFormat = util::artworkFormatToString(format);
 
                 std::string tempFilePath  = std::tmpnam(nullptr);
                 _bstr_t bstrPath = tempFilePath.c_str();
