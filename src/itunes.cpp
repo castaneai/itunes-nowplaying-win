@@ -116,7 +116,6 @@ namespace itunes_win
                 result.artworkDataBytes = util::readAllContentsFromFile(tempFilePath);
                 std::remove(tempFilePath.c_str());
             }
-            CoUninitialize();
             return result;
         }
         catch (...) {
