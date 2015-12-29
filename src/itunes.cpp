@@ -6,6 +6,7 @@
 #include <functional>
 #include "itunes.h"
 #include "iTunesCOMInterface.h"
+#include "tempfile.h"
 
 namespace itunes_win
 {
@@ -89,13 +90,14 @@ namespace itunes_win
 
                 ITArtworkFormat format;
                 if (pArtwork->get_Format(&format) != S_OK) throw std::exception("IITArtwork get_Format failed.");
-                result.artworkFormat = util::artworkFormatToString(format);
+				result.artworkFormat = util::artworkFormatToString(format);
 
-                std::string tempFilePath  = std::tmpnam(nullptr);
-                _bstr_t bstrPath = tempFilePath.c_str();
-                if (pArtwork->SaveArtworkToFile(bstrPath) != S_OK) std::exception("IITArtwork SaveArtworkToFile failed.");
-                result.artworkDataBytes = util::readAllContentsFromFile(tempFilePath);
-                std::remove(tempFilePath.c_str());
+				{
+					TempFile tempFile;
+					_bstr_t bstrPath = tempFile.getPath().c_str();
+					if (pArtwork->SaveArtworkToFile(bstrPath) != S_OK) std::exception("IITArtwork SaveArtworkToFile failed.");
+					result.artworkDataBytes = tempFile.readAllBytes();
+				}
             }
             return result;
         }
