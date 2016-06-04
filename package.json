@@ -1,6 +1,6 @@
 {
   "name": "itunes-win",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Control iTunes app for Windows",
   "main": "itunes-win.js",
   "scripts": {

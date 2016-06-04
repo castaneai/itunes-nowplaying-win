@@ -1,4 +1,4 @@
-#include <sstream>
+#include <vector>
 #include <fstream>
 #include <Windows.h>
 #include "tempfile.h"
@@ -23,8 +23,13 @@ const std::string TempFile::getPath() const
 
 const std::string TempFile::readAllBytes() const
 {
-	std::ifstream ifs(getPath());
-	std::stringstream buf;
-	buf << ifs.rdbuf();
-	return buf.str();
+	std::ifstream ifs(path, std::ios::binary | std::ios::ate);
+	auto pos = ifs.tellg();
+
+	std::vector<char> result(pos);
+
+	ifs.seekg(0, std::ios::beg);
+	ifs.read(&result[0], pos);
+
+	return std::string(result.begin(), result.end());
 }
