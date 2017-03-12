@@ -6,8 +6,6 @@
                 "src/itunes.h",
                 "src/itunes.cpp",
                 "src/node.cpp",
-                "src/tempfile.cpp",
-                "src/tempfile.h",
                 "src/iTunesCOMInterface.c"
             ],
             "include_dirs":[

@@ -1,14 +1,14 @@
 {
-  "name": "itunes-win",
-  "version": "0.0.5",
-  "description": "Control iTunes app for Windows",
-  "main": "itunes-win.js",
+  "name": "itunes-nowplaying-win",
+  "version": "0.0.1",
+  "description": "Get nowplaying track from iTunes for Windows",
+  "main": "itunes-nowplaying-win.js",
   "scripts": {
-    "install": "node-gyp rebuild"
+    "postinstall": "node-gyp rebuild"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/castaneai/itunes-win.git"
+    "url": "git+https://github.com/castaneai/itunes-nowplaying-win.git"
   },
   "keywords": [
     "itunes",
@@ -18,11 +18,14 @@
   "license": "MIT",
   "gypfile": true,
   "bugs": {
-    "url": "https://github.com/castaneai/itunes-win/issues"
+    "url": "https://github.com/castaneai/itunes-nowplaying-win/issues"
   },
-  "homepage": "https://github.com/castaneai/itunes-win#readme",
+  "homepage": "https://github.com/castaneai/itunes-nowplaying-win#readme",
   "dependencies": {
     "bindings": "^1.2.1",
     "nan": "^2.1.0"
+  },
+  "devDependencies": {
+    "tempfile": "^1.1.1"
   }
 }

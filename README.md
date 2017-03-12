@@ -1,8 +1,8 @@
-itunes-win
+itunes-nowplaying-win
 =======================
-[![npm version](https://badge.fury.io/js/itunes-win.svg)](https://badge.fury.io/js/itunes-win)
+[![npm version](https://badge.fury.io/js/itunes-nowplaying-win.svg)](https://badge.fury.io/js/itunes-nowplaying-win)
 
-Control iTunes app for Windows.
+Get nowplaying track from iTunes for Windows.
 
 ## Requirement
 
@@ -10,24 +10,23 @@ Control iTunes app for Windows.
 - Node.js
 - [node-gyp](https://github.com/nodejs/node-gyp)
 
-## Configure
+## How to debug with VisualStudio
 
+```bash
+> node-gyp configure --debug  # generate Visual Studio solution
+> start build\binding.sln  # launch Visual Studio
 ```
-$ node-gyp configure
-```
+
+Open project properties and `Configuration Properties > Debugging`
+
+- set `Command` to /path/to/node.exe
+- set `Command Arguments` to `$(ProjectDir)..\example.js`
+
 
 ## API
 
-### `getCurrentTrack(callback)`
-Get current playing track info.
+### `getNowplaying(callback(err, track))`
 
-#### `callback`: `function(err, track)`
+### `saveNowplayingArtworkToFile(path, callback(err))`
 
-```
-err: null
-track: { name: 'Dimension tripper!!!!',
-  artist: 'nao',
-  artwork:
-   { format: 'JPEG',
-     data: <Buffer ff d8 ff ... > } }
-```
+For more details, see `example.js`

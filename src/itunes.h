@@ -16,16 +16,16 @@ using com_unique_ptr = std::unique_ptr<T, com_deleter>;
 
 namespace itunes_win
 {
-    const long MaxArtworkBytesSize = 10 * 1024 * 1024; // 10MB
     struct Track 
     {
         std::string name;
         std::string artist;
+		int artworkCount;
         std::string artworkFormat;
-        std::string artworkDataBytes;
     };
 
     // export functions
     const bool iTunesProcessExists();
-    const Track getCurrentTrack();
+    void getNowplaying(Track& result);
+	void saveNowplayingArtworkToFile(std::string outPath);
 }

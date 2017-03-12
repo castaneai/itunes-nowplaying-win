@@ -1,12 +1,9 @@
+#include <tchar.h>
 #include <string>
 #include <codecvt>
-#include <tchar.h>
-#include <cstdio>
-#include <fstream>
 #include <functional>
 #include "itunes.h"
 #include "iTunesCOMInterface.h"
-#include "tempfile.h"
 
 namespace itunes_win
 {
@@ -18,92 +15,120 @@ namespace itunes_win
             return cvt.to_bytes(wstr);
         }
 
-        std::string bstrToUTF8String(const _bstr_t& bstr)
-        {
-            return wstringToUTF8String(std::wstring(bstr, bstr.length()));
-        }
+		std::string bstrToUtf8String(const _bstr_t& bstr)
+		{
+			return wstringToUTF8String(std::wstring(bstr, bstr.length()));
+		}
 
-        std::string artworkFormatToString(const ITArtworkFormat& fmt)
-        {
-            switch (fmt) {
-            case ITArtworkFormatJPEG:
-                return "JPEG";
+		const _bstr_t utf8StringToBstr(const std::string& str)
+		{
+			std::wstring_convert<std::codecvt_utf8<wchar_t>> cvt;
+			return _bstr_t(cvt.from_bytes(str).c_str());
+		}
 
-            case ITArtworkFormatPNG:
-                return "PNG";
+		std::string artworkFormatToString(const ITArtworkFormat& fmt)
+		{
+			switch (fmt) {
+			case ITArtworkFormatJPEG:
+				return "JPEG";
 
-            case ITArtworkFormatBMP:
-                return "BMP";
+			case ITArtworkFormatPNG:
+				return "PNG";
 
-            default:
-                return "UNKNOWN";
-            }
-        }
+			case ITArtworkFormatBMP:
+				return "BMP";
 
-        std::string readAllContentsFromFile(const std::string& filePath)
-        {
-            std::ifstream file(filePath, std::ios::in | std::ios::binary);
-            std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-            return content;
-        }
-    }
+			default:
+				return "UNKNOWN";
+			}
+		}
+	}
 
-    const bool iTunesProcessExists()
-    {
-        return FindWindow(_T("iTunes"), _T("iTunes")) != 0;
-    }
+	const bool iTunesProcessExists()
+	{
+		return FindWindow(_T("iTunes"), _T("iTunes")) != 0;
+	}
 
-    const Track getCurrentTrack()
-    {
-        CoInitialize(nullptr);
-        try {
-            com_unique_ptr<IiTunes> itunes;
-            auto res = CoCreateInstance(CLSID_iTunesApp, nullptr, CLSCTX_LOCAL_SERVER, IID_IiTunes, reinterpret_cast<void**>(&itunes));
-            if (res != S_OK) {
-                throw std::exception("CoCreateInstance failed.");
-            }
+	const int getArtworkCount(const IITArtworkCollection* const& artworks)
+	{
+		long artworkCount = 0;
+		if (const_cast<IITArtworkCollection*&>(artworks)->get_Count(&artworkCount) != S_OK) throw std::exception("IITArtworkCollection get_Count failed.");
+		return static_cast<int>(artworkCount);
+	}
 
-            com_unique_ptr<IITTrack> pTrack;
-            if (itunes->get_CurrentTrack(reinterpret_cast<IITTrack**>(&pTrack)) != S_OK) {
-                throw std::exception("get_CurrentTrack failed.");
-            }
+	const ITArtworkFormat getArtworkFormat(const IITArtwork* const& artwork)
+	{
+		ITArtworkFormat format;
+		if (const_cast<IITArtwork*&>(artwork)->get_Format(&format) != S_OK) throw std::exception("IITArtwork get_Format failed.");
+		return format;
+	}
 
-            Track result;
+	void iTunesContext(std::function<void(const com_unique_ptr<IiTunes>&)> action)
+	{
+		CoInitialize(nullptr);
+		try {
+			com_unique_ptr<IiTunes> itunes;
+			auto res = CoCreateInstance(CLSID_iTunesApp, nullptr, CLSCTX_LOCAL_SERVER, IID_IiTunes, reinterpret_cast<void**>(&itunes));
+			if (res != S_OK) throw std::exception("CoCreateInstance failed.");
+			action(itunes);
+			// 2回め以降のCoInitializeのコストを下げるため、正常完了のときはCoUninitializeしない
+		}
+		catch (...) {
+			CoUninitialize();
+			throw;
+		}
+	}
 
-            _bstr_t trackName;
-            if (pTrack->get_Name(trackName.GetAddress()) != S_OK) throw std::exception("track->get_Name failed.");
-            result.name = util::bstrToUTF8String(trackName);
+	/**
+	 * 現在再生中の曲情報を取得
+	 */
+	void getNowplaying(Track& result)
+	{
+		iTunesContext([&](const com_unique_ptr<IiTunes>& itunes) {
+			com_unique_ptr<IITTrack> track;
+			if (itunes->get_CurrentTrack(reinterpret_cast<IITTrack**>(&track)) != S_OK) throw std::exception("get_CurrentTrack failed.");
 
-            _bstr_t trackArtist;
-            if (pTrack->get_Artist(trackArtist.GetAddress()) != S_OK) throw std::exception("track->get_Artist failed.");
-            result.artist = util::bstrToUTF8String(trackArtist);
+			_bstr_t trackName;
+			if (track->get_Name(trackName.GetAddress()) != S_OK) throw std::exception("track->get_Name failed.");
+			result.name = util::bstrToUtf8String(trackName);
 
-            com_unique_ptr<IITArtworkCollection> pArtworks;
-            if (pTrack->get_Artwork(reinterpret_cast<IITArtworkCollection**>(&pArtworks)) != S_OK) throw std::exception("track->get_Artwork failed.");
+			_bstr_t trackArtist;
+			if (track->get_Artist(trackArtist.GetAddress()) != S_OK) throw std::exception("track->get_Artist failed.");
+			result.artist = util::bstrToUtf8String(trackArtist);
 
-            // TODO: multiple artworks
-            long artworkCount = 0;
-            if (pArtworks->get_Count(&artworkCount) != S_OK) throw std::exception("IITArtworkCollection get_Count failed.");
-            if (artworkCount > 0) {
-                com_unique_ptr<IITArtwork> pArtwork;
-                if (pArtworks->get_Item(1, reinterpret_cast<IITArtwork**>(&pArtwork)) != S_OK) throw std::exception("IITArtworkCollection get_Item failed.");
+			com_unique_ptr<IITArtworkCollection> artworks;
+			if (track->get_Artwork(reinterpret_cast<IITArtworkCollection**>(&artworks)) != S_OK) throw std::exception("track->get_Artwork failed.");
 
-                ITArtworkFormat format;
-                if (pArtwork->get_Format(&format) != S_OK) throw std::exception("IITArtwork get_Format failed.");
-				result.artworkFormat = util::artworkFormatToString(format);
+			auto artworkCount = getArtworkCount(artworks.get());
+			result.artworkCount = artworkCount;
+			result.artworkFormat = "";
 
-				{
-					TempFile tempFile;
-					_bstr_t bstrPath = tempFile.getPath().c_str();
-					if (pArtwork->SaveArtworkToFile(bstrPath) != S_OK) std::exception("IITArtwork SaveArtworkToFile failed.");
-					result.artworkDataBytes = tempFile.readAllBytes();
-				}
-            }
-            return result;
-        }
-        catch (...) {
-            CoUninitialize();
-            throw;
-        }
-    }
+			if (artworkCount > 0) {
+				com_unique_ptr<IITArtwork> artwork;
+				if (artworks->get_Item(1, reinterpret_cast<IITArtwork**>(&artwork)) != S_OK) throw std::exception("IITArtworkCollection->get_Item failed.");
+				result.artworkFormat = util::artworkFormatToString(getArtworkFormat(artwork.get()));
+			}
+		});
+	}
+
+	/**
+	 * 現在再生中の曲のアートワーク画像を指定パスに保存
+	 */
+	void saveNowplayingArtworkToFile(std::string outPath)
+	{
+		iTunesContext([&](const com_unique_ptr<IiTunes>& itunes) {
+			com_unique_ptr<IITTrack> track;
+			if (itunes->get_CurrentTrack(reinterpret_cast<IITTrack**>(&track)) != S_OK) throw std::exception("get_CurrentTrack failed.");
+
+			com_unique_ptr<IITArtworkCollection> artworks;
+			if (track->get_Artwork(reinterpret_cast<IITArtworkCollection**>(&artworks)) != S_OK) throw std::exception("track->get_Artwork failed.");
+
+			auto artworkCount = getArtworkCount(artworks.get());
+			if (artworkCount < 1) throw std::exception("artwork not found");
+
+			com_unique_ptr<IITArtwork> artwork;
+			if (artworks->get_Item(1, reinterpret_cast<IITArtwork**>(&artwork)) != S_OK) throw std::exception("IITArtworkCollection->get_Item failed.");
+			if (artwork->SaveArtworkToFile(util::utf8StringToBstr(outPath)) != S_OK) throw std::exception("pArtwork->SaveArtworkToFIle failed.");
+		});
+	}
 }
